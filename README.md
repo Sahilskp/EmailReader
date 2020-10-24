@@ -33,4 +33,4 @@ Develop a solution to automate the process of downloading the data and when emai
  - Logic app extract the archive file(Unzip) and store the actual CSV file in ADLS
    for further processing.
 
-![Screenshot](downloadfromemail.jpg)
+![Screenshot](datafromemail.jpg)
