@@ -1,0 +1,179 @@
+{
+    "definition": {
+        "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+        "actions": {
+            "Create_blob": {
+                "inputs": {
+                    "body": "@body('HTTP')",
+                    "host": {
+                        "connection": {
+                            "name": "@parameters('$connections')['azureblob_1']['connectionId']"
+                        }
+                    },
+                    "method": "post",
+                    "path": "/datasets/default/files",
+                    "queries": {
+                        "folderPath": "/data/Inputdata/",
+                        "name": "@variables('FileName')",
+                        "queryParametersSingleEncoded": true
+                    }
+                },
+                "runAfter": {
+                    "Initialize_variable": [
+                        "Succeeded"
+                    ]
+                },
+                "runtimeConfiguration": {
+                    "contentTransfer": {
+                        "transferMode": "Chunked"
+                    }
+                },
+                "type": "ApiConnection"
+            },
+            "Extract_archive_to_folder": {
+                "inputs": {
+                    "host": {
+                        "connection": {
+                            "name": "@parameters('$connections')['azureblob_1']['connectionId']"
+                        }
+                    },
+                    "method": "post",
+                    "path": "/datasets/default/extractFolderV2",
+                    "queries": {
+                        "destination": "/data/Inputdata/",
+                        "overwrite": true,
+                        "queryParametersSingleEncoded": true,
+                        "source": "/data/Inputdata/@{variables('FileName')}"
+                    }
+                },
+                "runAfter": {
+                    "Create_blob": [
+                        "Succeeded"
+                    ]
+                },
+                "type": "ApiConnection"
+            },
+            "HTTP": {
+                "inputs": {
+                    "method": "GET",
+                    "uri": "@body('Parse_JSON')?['responseMessage']"
+                },
+                "runAfter": {
+                    "Parse_JSON": [
+                        "Succeeded"
+                    ]
+                },
+                "type": "Http"
+            },
+            "HttpTriggerCSharp1": {
+                "inputs": {
+                    "body": "@triggerBody()?['Body']",
+                    "function": {
+                        "id": "/subscriptions/df1510fa-ba2c-41c6-b87d-b332ec31637d/resourceGroups/logicapp1-rg/providers/Microsoft.Web/sites/RemovingHTML/functions/HttpTriggerCSharp1"
+                    }
+                },
+                "runAfter": {},
+                "type": "Function"
+            },
+            "Initialize_variable": {
+                "inputs": {
+                    "variables": [
+                        {
+                            "name": "FileName",
+                            "type": "string",
+                            "value": "TP-@{utcNow()}.zip"
+                        }
+                    ]
+                },
+                "runAfter": {
+                    "HTTP": [
+                        "Succeeded"
+                    ]
+                },
+                "type": "InitializeVariable"
+            },
+            "Parse_JSON": {
+                "inputs": {
+                    "content": "@body('HttpTriggerCSharp1')",
+                    "schema": {
+                        "properties": {
+                            "responseMessage": {
+                                "type": "string"
+                            }
+                        },
+                        "type": "object"
+                    }
+                },
+                "runAfter": {
+                    "HttpTriggerCSharp1": [
+                        "Succeeded"
+                    ]
+                },
+                "type": "ParseJson"
+            }
+        },
+        "contentVersion": "1.0.0.0",
+        "outputs": {},
+        "parameters": {
+            "$connections": {
+                "defaultValue": {},
+                "type": "Object"
+            }
+        },
+        "triggers": {
+            "When_a_new_email_arrives_(V2)": {
+                "inputs": {
+                    "fetch": {
+                        "method": "get",
+                        "pathTemplate": {
+                            "template": "/v2/Mail/OnNewEmail"
+                        },
+                        "queries": {
+                            "fetchOnlyWithAttachment": false,
+                            "folderPath": "Inbox",
+                            "importance": "Any",
+                            "includeAttachments": false
+                        }
+                    },
+                    "host": {
+                        "connection": {
+                            "name": "@parameters('$connections')['outlook']['connectionId']"
+                        }
+                    },
+                    "subscribe": {
+                        "body": {
+                            "NotificationUrl": "@{listCallbackUrl()}"
+                        },
+                        "method": "post",
+                        "pathTemplate": {
+                            "template": "/MailSubscriptionPoke/$subscriptions"
+                        },
+                        "queries": {
+                            "fetchOnlyWithAttachment": false,
+                            "folderPath": "Inbox",
+                            "importance": "Any"
+                        }
+                    }
+                },
+                "splitOn": "@triggerBody()?['value']",
+                "type": "ApiConnectionNotification"
+            }
+        }
+    },
+    "parameters": {
+        "$connections": {
+            "value": {
+                "azureblob_1": {
+                    "connectionId": "/subscriptions/df1510fa-ba2c-41c6-b87d-b332ec31637d/resourceGroups/logicapp1-rg/providers/Microsoft.Web/connections/azureblob-1",
+                    "connectionName": "azureblob-1",
+                    "id": "/subscriptions/df1510fa-ba2c-41c6-b87d-b332ec31637d/providers/Microsoft.Web/locations/eastus/managedApis/azureblob"
+                },
+                "outlook": {
+                    "connectionId": "/subscriptions/df1510fa-ba2c-41c6-b87d-b332ec31637d/resourceGroups/logicapp1-rg/providers/Microsoft.Web/connections/outlook",
+                    "connectionName": "outlook",
+                    "id": "/subscriptions/df1510fa-ba2c-41c6-b87d-b332ec31637d/providers/Microsoft.Web/locations/eastus/managedApis/outlook"
+                }
+            }
+        }
+    }
+}
