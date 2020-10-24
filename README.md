@@ -2,7 +2,7 @@
 
 
 
-## Automate dowload data from a URL recieved via an Email
+# Automate dowload data from a URL recieved via an Email
 
 <br>
 
