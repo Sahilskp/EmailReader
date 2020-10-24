@@ -20,6 +20,8 @@ Develop a solution to automate the process of downloading the data and when emai
 
 ### Proposed Solution
 
+A solution will be developed n Azure cloud serverless components, Azure Logic App and Azure Function. The storage is Azure data lake storage.
+
  - Trigger the Logic App on arrival of the specific email.
  
  - Read email with URL and send the email body to a Function App
