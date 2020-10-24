@@ -13,7 +13,7 @@ An service to download and extract data from an API endpoint received trough an 
 
 Customer needs to receive and download data from a  data provider on a daily basis.  The data provider sends an API endpoint URL with an access key to the customer in an email message.  
 
-### Goals
+### Goal
 
 Develop a solution to automate the process of downloading the data and when email arrives from the data provider.
 
